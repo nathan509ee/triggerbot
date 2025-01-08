@@ -1,21 +1,38 @@
--- Obtém o jogador
-local player = game.Players.LocalPlayer
+-- Script para alterar a moeda do servidor para 10000
 
--- Função para prevenir a perda de vida
-local function preventHealthLoss(character)
-    -- Aguardar até que o personagem seja carregado
-    if character == nil then return end
+-- Função para encontrar e alterar a moeda
+local function alterarMoedaPara10k()
+    -- Verifica se o jogo possui uma moeda chamada "Coins"
+    local moeda = game:GetService("DataStoreService"):GetDataStore("PlayerDataStore")
 
-    -- Desativar os danos que poderiam diminuir a vida do personagem
-    local humanoide = character:WaitForChild("Humanoid")
+    -- Loop para verificar todas as moedas em jogadores
+    for _, jogador in ipairs(game.Players:GetPlayers()) do
+        -- Verifica se a chave de moeda existe para o jogador
+        local sucesso, valorAtual = pcall(function()
+            return moeda:GetAsync(jogador.UserId)
+        end)
 
-    -- Previne que a saúde diminua
-    humanoide.HealthChanged:Connect(function(health)
-        if humanoide.Health < humanoide.MaxHealth then
-            humanoide.Health = humanoide.MaxHealth -- Restaura a saúde automaticamente para o máximo
+        -- Caso a moeda seja encontrada, altera o valor para 10000
+        if sucesso then
+            if valorAtual then
+                -- Atualiza a moeda do jogador para 10000
+                local sucessoAlteracao, erro = pcall(function()
+                    moeda:SetAsync(jogador.UserId, 10000)
+                end)
+
+                if sucessoAlteracao then
+                    print("Moeda de " .. jogador.Name .. " alterada para 10000.")
+                else
+                    warn("Erro ao alterar a moeda de " .. jogador.Name .. ": " .. erro)
+                end
+            else
+                warn("Nenhuma moeda encontrada para o jogador " .. jogador.Name)
+            end
+        else
+            warn("Erro ao obter dados do jogador " .. jogador.Name .. ": " .. valorAtual)
         end
-    end)
+    end
 end
 
--- Quando o personagem do jogador for carregado, aplicamos a prevenção
-player.CharacterAdded:Connect(preventHealthLoss)
+-- Chama a função para alterar a moeda
+alterarMoedaPara10k()
