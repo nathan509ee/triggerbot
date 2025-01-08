@@ -1,26 +1,26 @@
--- Script para duplicar um item em Roblox
+-- Obtém o jogador
+local player = game.Players.LocalPlayer
 
--- Referência ao item que será duplicado
-local itemOriginal = script.Parent -- Assumindo que o script está dentro do item que será duplicado
+-- A função para prevenir a morte
+local function preventDeath(character)
+    -- Aguardar até que o personagem seja carregado
+    if character == nil then return end
 
--- Função para duplicar o item
-local function duplicarItem()
-    -- Cria uma cópia do item original
-    local itemDuplicado = itemOriginal:Clone()
+    -- Desativar os danos que poderiam matar o personagem
+    local humanoide = character:WaitForChild("Humanoid")
     
-    -- Define a posição do item duplicado (aqui está sendo colocado levemente ao lado do original)
-    itemDuplicado.Position = itemOriginal.Position + Vector3.new(5, 0, 0)
+    -- Previne a morte do personagem
+    humanoide.Died:Connect(function()
+        humanoide.Health = humanoide.MaxHealth -- Sempre mantém o personagem com a vida cheia
+    end)
     
-    -- Define o item duplicado como um filho do Workspace (ou onde preferir)
-    itemDuplicado.Parent = game.Workspace
+    -- Previne qualquer dano ao personagem
+    humanoide.HealthChanged:Connect(function()
+        if humanoide.Health < humanoide.MaxHealth then
+            humanoide.Health = humanoide.MaxHealth -- Restaura a saúde automaticamente
+        end
+    end)
 end
 
--- Detecta quando o jogador clica no item
-itemOriginal.Touched:Connect(function(hit)
-    -- Verifica se o jogador tocou no item (pode ser ajustado dependendo do seu uso)
-    local player = game:GetService("Players"):GetPlayerFromCharacter(hit.Parent)
-    if player then
-        -- Chama a função de duplicação
-        duplicarItem()
-    end
-end)
+-- Quando o personagem do jogador for carregado, aplicamos a prevenção
+player.CharacterAdded:Connect(preventDeath)
