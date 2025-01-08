@@ -1,31 +1,33 @@
--- Obter o jogador
+-- Referências
 local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
+local mouse = player:GetMouse()
+local camera = workspace.CurrentCamera
 
--- Função para permitir atravessar paredes
-local function atravessarParedes()
-    -- Definir uma distância de proximidade da parede
-    local distanciaMaxima = 5
-    
-    -- Loop para verificar colisões constantemente
-    while true do
-        wait(0.1) -- Espera um pouco para não travar o jogo
-        local posicao = character.HumanoidRootPart.Position
-        local raio = 5 -- Raio para verificar as paredes ao redor
+-- Variáveis de configuração
+local crosshair = script.Parent -- A mira (GUI)
+local defaultPosition = crosshair.Position -- Posição inicial da mira
 
-        -- Encontrar todos os objetos ao redor usando um raio
-        local partes = workspace:FindPartsInRegion3(workspace.CurrentCamera.CFrame:PointToWorldSpace(posicao), Vector3.new(raio, raio, raio), nil)
-
-        -- Checar se há colisões com as paredes
-        for _, parte in ipairs(partes) do
-            -- Se a parte for uma parede ou objeto sólido
-            if parte and parte:IsA("BasePart") then
-                -- Desabilitar a colisão com a parte
-                parte.CanCollide = false
-            end
-        end
-    end
+-- Função para garantir que a mira não suba
+local function estabilizarMira()
+    -- Sempre reseta a posição da mira para o valor original
+    crosshair.Position = defaultPosition
 end
 
--- Iniciar a função para atravessar paredes
-atravessarParedes()
+-- Evento de disparo (aqui você deve personalizar conforme a mecânica de armas)
+local function onShoot()
+    -- Chama a função para estabilizar a mira sempre que atirar
+    estabilizarMira()
+end
+
+-- Conectar a função de disparo ao evento de tiro (exemplo genérico)
+-- Aqui você deve conectar com seu sistema de disparo, exemplo:
+player.Character:WaitForChild("Humanoid").Died:Connect(function()
+    -- Aqui você pode resetar a mira se necessário
+    crosshair.Position = defaultPosition
+end)
+
+-- Caso você queira conectar a algo específico no disparo, você pode
+-- Adicionar um evento para quando a arma for disparada. Exemplo de conexão:
+game:GetService("ReplicatedStorage").OnShootEvent.OnClientEvent:Connect(onShoot)
+
+-- Ou se você tem uma função customizada de disparo no seu jogo, é só chamar onShoot() dentro dela
